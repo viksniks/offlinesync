@@ -3,126 +3,189 @@
     <ion-title style="text-align: center;">
       Offline Sync
     </ion-title>
+    <ion-segment [(ngModel)]="segment" (ionChange)="segmentChanged($event)">
+
+      <ion-segment-button value="new">
+        <ion-label>New</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="existings">
+        <ion-label>Existing</ion-label>
+
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
+  <ion-toolbar *ngIf="segment == 'existings'">
+    <!-- <ion-searchbar></ion-searchbar> -->
+    <h4 style="text-align: center;"><b>Data Count({{dataFromApi.length}})</b></h4>
+  </ion-toolbar>
+
 </ion-header>
 
 <ion-content>
-  <ion-grid>
-    <!-- <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">codigo:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO" type="tel"></ion-input></ion-col>
-    </ion-row> -->
-    <!-- <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">FECHA_INGRESO:</ion-col>
-      <ion-col size="8"><ion-datetime></ion-datetime></ion-col>
+  <ion-text *ngIf="segment == 'existings'" color="success">
+    
+
+  </ion-text>
+  <ion-card *ngIf="segment == 'existings'">
+
+    <ion-card-content *ngFor="let d of dataFromApi;let i = index;">
+      <b style="color: #222;">{{d | json}}</b>
+
+    </ion-card-content>
+  </ion-card>
+  <ion-grid *ngIf="segment == 'new'">
+
+    <ion-row>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_VISITANTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CODIGO_VISITANTE" type="tel"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">F_INGRESO:</ion-col>
-      <ion-col size="8"><ion-datetime></ion-datetime></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_VISITANTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.NOMBRE_VISITANTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">FECHA_SALIDA:</ion-col>
-      <ion-col size="8"><ion-datetime></ion-datetime></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CEDULA_VISITANTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CEDULA_VISITANTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">F_SALIDA:</ion-col>
-      <ion-col size="8"><ion-datetime></ion-datetime></ion-col>
-    </ion-row> -->
-    <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_VISITANTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO_VISITANTE" type="tel"></ion-input></ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_VISITANTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.NOMBRE_VISITANTE" ></ion-input></ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CEDULA_VISITANTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CEDULA_VISITANTE" ></ion-input></ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">EMPRESA_VISITANTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.EMPRESA_VISITANTE" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">EMPRESA_VISITANTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.EMPRESA_VISITANTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">FOTO_VISITANTE:</ion-col>
-      <ion-col size="8"><ion-textarea [(ngModel)]="objtemp.FOTO_VISITANTE" ></ion-textarea></ion-col>
+      <ion-col size="8">
+        <ion-textarea [(ngModel)]="objtemp.FOTO_VISITANTE"></ion-textarea>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">TIPO:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.TIPO" type="tel"></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.TIPO" type="tel"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">AREA_VISITA:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.AREA_VISITA"></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.AREA_VISITA"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">RESPONSABLE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.RESPONSABLE" ></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.RESPONSABLE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">OBSERVACION:</ion-col>
-      <ion-col size="8"><ion-textarea [(ngModel)]="objtemp.OBSERVACION"></ion-textarea></ion-col>
+      <ion-col size="8">
+        <ion-textarea [(ngModel)]="objtemp.OBSERVACION"></ion-textarea>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_TURNO:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO_TURNO" type="tel" ></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CODIGO_TURNO" type="tel"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_PUNTO_CONTROL:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO_PUNTO_CONTROL" type="tel" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_PUNTO_CONTROL:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CODIGO_PUNTO_CONTROL" type="tel"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_PUNTO_CONTROL:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.NOMBRE_PUNTO_CONTROL"  ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_PUNTO_CONTROL:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.NOMBRE_PUNTO_CONTROL"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_SUCURSAL_CLIENTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO_SUCURSAL_CLIENTE"  ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_SUCURSAL_CLIENTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CODIGO_SUCURSAL_CLIENTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_SUCURSAL_CLIENTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.NOMBRE_SUCURSAL_CLIENTE" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_SUCURSAL_CLIENTE:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.NOMBRE_SUCURSAL_CLIENTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">DIRECCION_SUCURSAL_CLIENTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.DIRECCION_SUCURSAL_CLIENTE" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">
+        DIRECCION_SUCURSAL_CLIENTE:</ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.DIRECCION_SUCURSAL_CLIENTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">TELEFONO_SUCURSAL_CLIENTE:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.TELEFONO_SUCURSAL_CLIENTE" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">
+        TELEFONO_SUCURSAL_CLIENTE:</ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.TELEFONO_SUCURSAL_CLIENTE"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CODIGO_USUARIO:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CODIGO_USUARIO" ></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CODIGO_USUARIO"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">NOMBRE_USUARIO:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.NOMBRE_USUARIO" ></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.NOMBRE_USUARIO"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">TELEFONO_USUARIO:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.TELEFONO_USUARIO" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">TELEFONO_USUARIO:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.TELEFONO_USUARIO"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CANTIDAD_ADJUNTOS:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.CANTIDAD_ADJUNTOS" ></ion-input></ion-col>
+      <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">CANTIDAD_ADJUNTOS:
+      </ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.CANTIDAD_ADJUNTOS"></ion-input>
+      </ion-col>
     </ion-row>
     <ion-row>
       <ion-col style="text-align: right;text-transform: uppercase;font-weight: bold;" size="4">LISTA_ADJUNTOS:</ion-col>
-      <ion-col size="8"><ion-input [(ngModel)]="objtemp.LISTA_ADJUNTOS" ></ion-input></ion-col>
+      <ion-col size="8">
+        <ion-input [(ngModel)]="objtemp.LISTA_ADJUNTOS"></ion-input>
+      </ion-col>
     </ion-row>
-    
-    
-    
+
+
+
   </ion-grid>
 </ion-content>
-<ion-footer>
+<ion-footer *ngIf="segment == 'new'">
   <ion-toolbar>
     <ion-grid>
       <ion-row>
         <ion-col></ion-col>
-        <ion-col><ion-button (click)="pushData()">Submit</ion-button></ion-col>
+        <ion-col>
+          <ion-button (click)="pushDataTemp()">Submit</ion-button>
+        </ion-col>
         <ion-col></ion-col>
       </ion-row>
     </ion-grid>
