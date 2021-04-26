@@ -10,11 +10,12 @@ import {Network} from "@ionic-native/network/ngx";
 import {IonicStorageModule} from "@ionic/storage";
 import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
+import {Camera} from "@ionic-native/camera/ngx";
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,IonicStorageModule.forRoot(),HttpClientModule],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },Network,HTTP],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },Network,HTTP,Camera],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

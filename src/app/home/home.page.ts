@@ -1,11 +1,13 @@
-import { Component, TRANSLATIONS } from '@angular/core';
+import { Component } from '@angular/core';
 
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { HTTP } from "@ionic-native/http/ngx";
 import { LoadingController, ToastController, Platform } from "@ionic/angular";
 import { Network } from "@ionic-native/network/ngx";
 import { Storage } from "@ionic/storage";
-import { ThrowStmt } from '@angular/compiler';
+import { Camera, CameraOptions } from "@ionic-native/camera/ngx";
+import firebase from 'firebase';
+import { environment } from "../../environments/environment";
 
 
 
@@ -19,6 +21,8 @@ export class HomePage {
   offline: boolean = false;
   segment: string = "new";
   init: boolean = true;
+  attachments: any[] = [];
+  config: any = environment.firebaseConfig;
   objtemp: obj = {
     CODIGO: null,
 
@@ -49,14 +53,61 @@ export class HomePage {
     LISTA_ADJUNTOS: null
 
   }
-  dataFromApi: obj[] = [];
-  constructor(private http: HttpClient, private http1: HTTP, private loader: LoadingController, private toast: ToastController, private network: Network, private storage: Storage, private platform: Platform) { }
 
+  dataFromApi: obj[] = [];
+  constructor(private camera: Camera, private http: HttpClient, private http1: HTTP, private loader: LoadingController, private toast: ToastController, private network: Network, private storage: Storage, private platform: Platform) { }
+
+  openImage(url) {
+    window.open(url);
+  }
+  captureImage() {
+    const options: CameraOptions = {
+      quality: 100,
+      destinationType: this.camera.DestinationType.DATA_URL,
+      encodingType: this.camera.EncodingType.PNG,
+      mediaType: this.camera.MediaType.PICTURE
+    }
+
+    this.camera.getPicture(options).then((imageData) => {
+
+      let base64Image = 'data:image/png;base64,' + imageData;
+
+      var ref = this;
+      this.upload(base64Image, Date.now() + ".png", function (url) {
+
+        var obj = {
+          CODIGO: null,
+          CODIGO_BITACORA: null,
+          TIPO: 1,
+          OBSERVACION: "SN",
+          FOTO: url
+
+
+        }
+        // alert(base64Image == url);
+        if (base64Image == url) {
+          obj["base64"] = true;
+        }
+        ref.attachments.push(obj);
+
+      });
+
+    }, (err) => {
+      // Handle error
+    });
+
+  }
   ngOnInit() {
     this.platform.ready().then(() => {
 
+      if (firebase.apps.length == 0) {
+        firebase.initializeApp(this.config);
+
+      }
+
       this.init = true;
       if (navigator.onLine) {
+        this.offline = false;
         this.pushOfflinePosts();
       }
       else {
@@ -94,7 +145,7 @@ export class HomePage {
       if (this.offline) {
         this.offline = false;
         if (this.init == false) {
-          
+
           this.pushOfflinePosts();
         }
       }
@@ -254,78 +305,126 @@ export class HomePage {
       delete requestData.inserted;
       offlinePost = true;
     }
-    var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
+    if (index == -1) {
+      requestData.LISTA_ADJUNTOS = this.attachments;
+
+      this.attachments = [];
+
+    }
+    var ref = this;
+    //  alert(JSON.stringify(requestData.LISTA_ADJUNTOS));
+    this.uploadOfflineImages(requestData.LISTA_ADJUNTOS, function (arr) {
+      //  alert(JSON.stringify(arr));
+      requestData.LISTA_ADJUNTOS = arr;
+      var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
 
 
-    this.http1.setDataSerializer("json");
-    var key = new Date().toISOString().split("T")[0];
-    this.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
+      ref.http1.setDataSerializer("json");
+      var key = new Date().toISOString().split("T")[0];
+      ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
 
 
-      var val = JSON.parse(JSON.parse(res.data));
+        var val = JSON.parse(JSON.parse(res.data));
 
-
-      if (index != -1) {
-        this.removeOfflineRequest(index, function () {
-          fn();
-        })
-      }
-      else {
-        this.getData();
-        fn();
-      }
-
-      this.showToast(val.message);
-
-    }, (err) => {
-      console.log(fn);
-
-
-      if (this.offline) {
-        this.showToast("Registro de bitacora correcto:");
-
-        if (offlinePost == false) {
-          this.storage.get(key).then((offlinedata) => {
-
-            if (offlinedata) {
-              offlinedata.unshift(requestData);
-              this.storage.set(key, offlinedata);
-              this.dataFromApi.unshift(requestData);
-              this.addOfflineRequest(requestData);
+        ref.pushData1(requestData.LISTA_ADJUNTOS, val.title, function () {
+          if (index != -1) {
+            ref.removeOfflineRequest(index, function () {
               fn();
+            })
+          }
+          else {
+            ref.getData();
+            fn();
+          }
+
+          ref.showToast(val.message);
+
+        })
 
 
-            }
-            else {
-              var arr = [];
-              arr.push(requestData);
-              this.storage.set(key, arr);
-              this.dataFromApi.unshift(requestData);
-              this.addOfflineRequest(requestData);
-              fn()
+      }, (err) => {
+        console.log(fn);
 
 
-            }
+        if (navigator.onLine == false) {
+          ref.showToast("Registro de bitacora correcto:");
 
-          })
+          if (offlinePost == false) {
+            ref.storage.get(key).then((offlinedata) => {
+
+              if (offlinedata) {
+                offlinedata.unshift(requestData);
+                ref.storage.set(key, offlinedata);
+                ref.dataFromApi.unshift(requestData);
+                ref.addOfflineRequest(requestData);
+                fn();
+
+
+              }
+              else {
+                var arr = [];
+                arr.push(requestData);
+                ref.storage.set(key, arr);
+                ref.dataFromApi.unshift(requestData);
+                ref.addOfflineRequest(requestData);
+                fn()
+
+
+              }
+
+            })
+          }
+          else {
+
+            fn();
+          }
+
+
+
+
+
         }
         else {
-
           fn();
+          ref.showToast(JSON.stringify(err));
+
         }
 
-
-
-
-
-      }
-      else {
-        fn();
-        this.showToast(JSON.stringify(err));
-
-      }
-
+      })
     })
+
+  }
+  pushData1(arr, title, fn) {
+    if (arr.length > 0) {
+      var i = 0;
+      var ref = this;
+      inner();
+
+      function inner() {
+        var url = "http://apihawksdemo.services-hawks.com/api/CreateAttachBitacora";
+
+
+        ref.http1.setDataSerializer("json");
+        arr[i].CODIGO_BITACORA = title;
+        ref.http1.post(url, arr[i], { "Content-Type": "application/json" }).then((res) => {
+          console.log(res);
+          i++;
+          if (i < arr.length) {
+            inner();
+          }
+          else {
+            fn();
+          }
+
+
+
+        })
+
+      }
+    }
+    else {
+      fn();
+    }
 
   }
 
@@ -379,6 +478,94 @@ export class HomePage {
     })
 
   }
+  uploadOfflineImages(arr, fn) {
+    if (arr.length > 0) {
+      let i = 0;
+      var ref = this;
+      inner();
+
+      function inner() {
+        // alert(arr[i].base64);
+        // alert(arr.length);
+        if (arr[i].base64) {
+          ref.upload(arr[i].FOTO, Date.now().toString() + ".png", function (url) {
+            arr[i].FOTO = url;
+            if (url != arr[i].FOTO) {
+              delete arr[i].base64;
+            }
+            i++
+            if (i < arr.length) {
+              inner();
+            }
+            else {
+              fn(arr);
+
+            }
+
+
+          })
+
+        }
+        else {
+          i++;
+          if (i < arr.length) {
+            inner();
+          }
+          else {
+            fn(arr);
+
+          }
+        }
+      }
+    }
+    else {
+      fn(arr);
+    }
+  }
+
+  upload(base64, fileName, fn) {
+
+    let ref = this;
+    this.loader.create({
+      message: "uploading file..."
+    }).then((ele) => {
+
+      ele.present();
+      if (navigator.onLine) {
+
+        // window.app.firebasetemp.database().ref(window.app.appName+"/images/"+id+"/").set(obj, function (err) {
+
+        //   ele.dismiss();
+        // })
+        var storageref = firebase.storage().ref();
+
+        var childRef = storageref.child(fileName);
+        childRef.putString(base64, "data_url").then((snapshot) => {
+          ele.dismiss();
+          snapshot.ref.getDownloadURL().then((downloadURL) => {
+           ref.showToast("downloadurl = "+downloadURL);
+            fn(downloadURL)
+          }, (err) => {
+            ele.dismiss();
+            if (navigator.onLine == false) {
+              fn(base64);
+            }
+            console.log(err);
+          });
+        }, (err) => {
+          ele.dismiss();
+          console.log(err);
+        })
+      }
+      else {
+        ele.dismiss();
+        fn(base64);
+      }
+
+
+    })
+
+  }
 
 
 }
@@ -408,5 +595,6 @@ interface obj {
   NOMBRE_USUARIO: string,
   TELEFONO_USUARIO: string,
   CANTIDAD_ADJUNTOS: string,
-  LISTA_ADJUNTOS: string
+  LISTA_ADJUNTOS: any[]
 }
+
