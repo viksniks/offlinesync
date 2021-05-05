@@ -1,132 +1,14 @@
-<ion-header style="z-index: 0;">
+<ion-header style="z-index:0;">
   <ion-toolbar>
-    <ion-title style="text-align: center;">
-      Offline Sync
-    </ion-title>
-    <ion-segment [(ngModel)]="segment" (ionChange)="segmentChanged($event)">
-
-      <ion-segment-button value="new">
-        <ion-label>New</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="existings">
-        <ion-label>Existing</ion-label>
-
-      </ion-segment-button>
-    </ion-segment>
-   
+    <ion-title style="text-align: center;">Register</ion-title>
+    <ion-buttons slot="end">
+      <ion-icon (click)="close()" size="large" name="close-circle"></ion-icon>
+    </ion-buttons>
   </ion-toolbar>
-  <ion-toolbar id="pBar"  style="display: none;">
-    <div style="position: relative;top:50%;">
-      <ion-label><ion-text  style="text-align:center;font-weight:bold;"><p>syncing</p></ion-text></ion-label>
-        <ion-progress-bar   type="indeterminate"></ion-progress-bar>
-    </div>
-  </ion-toolbar>
-  <ion-toolbar *ngIf="segment == 'existings'">
-    <!-- <ion-searchbar></ion-searchbar> -->
-    <h4 style="text-align: center;"><b>Data Count({{dataFromApi.length}})</b></h4>
-  </ion-toolbar>
-
-
 </ion-header>
 
 <ion-content>
-  <ion-text *ngIf="segment == 'existings'" color="success">
-
-
-  </ion-text>
-  <div *ngIf="segment == 'existings'">
-    <ion-card *ngFor="let d of dataFromApi;let i = index;">
-
-      <ion-card-content>
-        <!-- <b  style="color: #222;">{{d | json}}</b> -->
-        <!-- <ion-row *ngIf="d.CODIGO">
-        <ion-col style="text-align: center;text-transform: uppercase;font-weight: bold;" size="4">
-          
-        
-          Attachments <ion-icon style="position: relative;" (click)="captureImage()" size="large" name="camera"></ion-icon>
-        </ion-col>
-      </ion-row>
-      <ion-row *ngIf="attachments.length > 0">
-  
-        <ion-col style="position: relative;" *ngFor="let a of attachments;let i = index;" size="4">
-          <ion-icon (click)="removeAttachments(i)" size="large" style="position: absolute;left: 70%;top:0px;" color="danger" name="close-circle"></ion-icon>
-          <img [src]="a.FOTO" />
-        </ion-col>
-  
-      </ion-row> -->
-        <p>CODIGO: {{d.CODIGO}}</p>
-
-        <p>FECHA_INGRESO: {{d.FECHA_INGRESO}}</p>
-        <p>F_INGRESO: {{d.F_INGRESO}}</p>
-        <p>FECHA_SALIDA: {{d.FECHA_SALIDA}}</p>
-        <p> F_SALIDA: {{d.F_SALIDA}}</p>
-        <p>CODIGO_VISITANTE: {{d.CODIGO_VISITANTE}}</p>
-        <p>NOMBRE_VISITANTE:{{d.NOMBRE_VISITANTE}}</p>
-        <p>CEDULA_VISITANTE:{{d.CEDULA_VISITANTE}}</p>
-        <p>EMPRESA_VISITANTE: {{d.EMPRESA_VISITANTE}}</p>
-        <p>FOTO_VISITANTE:{{d.FOTO_VISITANTE}}</p>
-        <p>TIPO: {{d.TIPO}}</p>
-        <p>AREA_VISITA: {{d.AREA_VISITA}}</p>
-        <p>RESPONSABLE:{{d.RESPONSABLE}} </p>
-        <p>OBSERVACION: {{d.OBSERVACION}}</p>
-        <p>CODIGO_TURNO: {{d.CODIGO_TURNO}}</p>
-        <p>CODIGO_PUNTO_CONTROL:{{d.CODIGO_PUNTO_CONTROL}} </p>
-        <p>NOMBRE_PUNTO_CONTROL:{{d.NOMBRE_PUNTO_CONTROL}} </p>
-        <p>CODIGO_SUCURSAL_CLIENTE: {{d.CODIGO_SUCURSAL_CLIENTE}}</p>
-        <p>NOMBRE_SUCURSAL_CLIENTE: {{d.NOMBRE_SUCURSAL_CLIENTE}}</p>
-        <p>DIRECCION_SUCURSAL_CLIENTE: {{d.DIRECCION_SUCURSAL_CLIENTE}}</p>
-        <p>TELEFONO_SUCURSAL_CLIENTE: {{d.TELEFONO_SUCURSAL_CLIENTE}}</p>
-        <p>CODIGO_USUARIO: {{d.CODIGO_USUARIO}}</p>
-        <p>NOMBRE_USUARIO: {{d.NOMBRE_USUARIO}}</p>
-        <p>TELEFONO_USUARIO: {{d.TELEFONO_USUARIO}}</p>
-        <p>CANTIDAD_ADJUNTOS: {{d.CANTIDAD_ADJUNTOS}}</p><br />
-        <p>
-          <ion-icon style="position: relative;top:10px;" *ngIf="d.CODIGO" (click)="captureImage(i)" size="large"
-            name="camera">
-          </ion-icon>LISTA_ADJUNTOS:
-        </p>
-        <ion-slides pager="true">
-
-
-
-
-
-
-          <ion-slide *ngFor="let l of d.LISTA_ADJUNTOS">
-
-            <ion-card>
-              <img [src]="l.FOTO" />
-
-              <ion-card-content>
-                <p>CODIGO:{{l.CODIGO}}</p>
-                <p>TIPO:{{l.TIPO}}</p>
-                <p>OBSERVACION:{{l.OBSERVACION}}</p>
-                <p>CODIGO_BITACORA:{{l.CODIGO_BITACORA}}</p>
-              </ion-card-content>
-            </ion-card>
-
-
-          </ion-slide>
-
-        </ion-slides>
-        <!-- <p>LISTA_ADJUNTOS:</p>
-      <p *ngFor="let l of d.LISTA_ADJUNTOS">
-        <b *ngIf='l.base64 != true'>
-          <p>CODIGO:{{l.CODIGO}}</p>
-          <p>FOTO:<span style="text-decoration: underline;color: blue;" (click)="openImage(l.FOTO)">{{l.FOTO}}</span>
-          </p>
-          <p>TIPO:{{l.TIPO}}</p>
-          <p>OBSERVACION:{{l.OBSERVACION}}</p>
-          <p>CODIGO_BITACORA:{{l.CODIGO_BITACORA}}</p>
-        </b>
-      </p> -->
-        <!-- LISTA_ADJUNTOS: any[] -->
-
-      </ion-card-content>
-
-    </ion-card>
-  </div>
-  <ion-grid *ngIf="segment == 'new'">
+  <ion-grid>
 
 
     <ion-row>
@@ -272,16 +154,34 @@
 
   </ion-grid>
 </ion-content>
-<ion-footer *ngIf="segment == 'new'">
+
+<ion-footer>
   <ion-toolbar>
+    <ion-grid *ngIf="id != ''">
+      <ion-row>
+        <ion-col>
+          <ion-slides pager="true">
+            <ion-slide *ngFor="let a of attachments">
+              <img [src]="a.FOTO" />
+            </ion-slide>
+          </ion-slides>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <ion-buttons slot="end">
+      <ion-icon *ngIf="id != ''" size="large" (click)="captureImage()" name="camera"></ion-icon>
+    </ion-buttons>
     <ion-grid>
       <ion-row>
         <ion-col></ion-col>
         <ion-col>
-          <ion-button (click)="pushDataTemp()">Submit</ion-button>
+          <ion-button *ngIf="attachments.length == 0" (click)="pushDataTemp()">Submit</ion-button>
+          <ion-button (click)="pushData1Temp()" *ngIf="attachments.length > 0">Add Attachments</ion-button>
+          <ion-button (click)="removeAllImages()" *ngIf="attachments.length > 0">Cancel</ion-button>
         </ion-col>
         <ion-col></ion-col>
       </ion-row>
     </ion-grid>
+
   </ion-toolbar>
 </ion-footer>

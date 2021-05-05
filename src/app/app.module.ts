@@ -11,10 +11,11 @@ import {IonicStorageModule} from "@ionic/storage";
 import {HttpClientModule} from "@angular/common/http";
 import {HTTP} from "@ionic-native/http/ngx";
 import {Camera} from "@ionic-native/camera/ngx";
+import {PopupPageModule} from "../app/popup/popup.module";
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,IonicStorageModule.forRoot(),HttpClientModule],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,IonicStorageModule.forRoot(),HttpClientModule,PopupPageModule],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },Network,HTTP,Camera],
   bootstrap: [AppComponent],
 })

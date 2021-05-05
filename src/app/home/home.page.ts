@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component,ChangeDetectorRef } from '@angular/core';
 
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { HTTP } from "@ionic-native/http/ngx";
@@ -8,6 +8,7 @@ import { Storage } from "@ionic/storage";
 import { Camera, CameraOptions } from "@ionic-native/camera/ngx";
 import firebase from 'firebase';
 import { environment } from "../../environments/environment";
+
 
 
 
@@ -55,12 +56,13 @@ export class HomePage {
   }
 
   dataFromApi: obj[] = [];
-  constructor(private camera: Camera, private http: HttpClient, private http1: HTTP, private loader: LoadingController, private toast: ToastController, private network: Network, private storage: Storage, private platform: Platform) { }
+  progressbar: boolean = false;
+  constructor(private camera: Camera, private http: HttpClient, private http1: HTTP, private loader: LoadingController, private toast: ToastController, private network: Network, private storage: Storage, private platform: Platform,private changeRef: ChangeDetectorRef) { }
 
   openImage(url) {
     window.open(url);
   }
-  captureImage() {
+  captureImage(i) {
     const options: CameraOptions = {
       quality: 100,
       destinationType: this.camera.DestinationType.DATA_URL,
@@ -73,29 +75,37 @@ export class HomePage {
       let base64Image = 'data:image/png;base64,' + imageData;
 
       var ref = this;
-      this.upload(base64Image, Date.now() + ".png", function (url) {
-
-        var obj = {
-          CODIGO: null,
-          CODIGO_BITACORA: null,
-          TIPO: 1,
-          OBSERVACION: "SN",
-          FOTO: url
+      var obj = {
+        CODIGO: null,
+        CODIGO_BITACORA: ref.dataFromApi[i].CODIGO.toString(),
+        TIPO: 1,
+        OBSERVACION: "SN",
+        FOTO: base64Image
 
 
-        }
-        // alert(base64Image == url);
-        if (base64Image == url) {
-          obj["base64"] = true;
-        }
-        ref.attachments.push(obj);
+      }
+      ref.dataFromApi[i].LISTA_ADJUNTOS.push(obj);
+      ref.addOfflineRequest1(obj);
+      ref.saveOfflineAttachments(obj.CODIGO_BITACORA, obj);
+      // this.upload(base64Image, Date.now() + ".png", function (url) {
 
-      });
+
+      //   // alert(base64Image == url);
+      //   if (base64Image == url) {
+      //     obj["base64"] = true;
+      //   }
+      //   obj.FOTO = url;
+      //   ref.dataFromApi[i].LISTA_ADJUNTOS[ref.dataFromApi[i].LISTA_ADJUNTOS.length - 1] = obj;
+
+      // });
 
     }, (err) => {
       // Handle error
     });
 
+  }
+  removeAttachments(i) {
+    this.attachments.slice(i, 1);
   }
   ngOnInit() {
     this.platform.ready().then(() => {
@@ -106,13 +116,14 @@ export class HomePage {
       }
 
       this.init = true;
+      this.getOfflineData();
       if (navigator.onLine) {
         this.offline = false;
         this.pushOfflinePosts();
       }
       else {
         this.offline = true;
-        this.getData();
+
       }
       this.subscribeNetworkDetection();
       this.deletePreviousDateDatas();
@@ -135,7 +146,7 @@ export class HomePage {
         this.offline = true;
         //this.showToast("you are offline!");
         if (this.init == false) {
-          this.getData();
+          //this.getData();
         }
       }
 
@@ -144,8 +155,9 @@ export class HomePage {
     this.network.onConnect().subscribe(() => {
       if (this.offline) {
         this.offline = false;
+        alert(this.init);
         if (this.init == false) {
-
+          
           this.pushOfflinePosts();
         }
       }
@@ -160,10 +172,11 @@ export class HomePage {
     this.storage.keys().then((keys) => {
       if (keys) {
         var key = new Date().toISOString().split("T")[0];
+       // alert(key);
         for (var i = 0; i < keys.length; i++) {
 
           if (key != keys[i]) {
-            if (keys[i] != "posts") {
+            if (keys[i].search('-') != -1) {
               this.storage.remove(keys[i]);
             }
           }
@@ -178,7 +191,8 @@ export class HomePage {
 
   pushOfflinePosts() {
 
-    if (this.offline == false) {
+
+    if (navigator.onLine) {
       this.storage.get("posts").then((posts) => {
 
         if (posts) {
@@ -186,38 +200,99 @@ export class HomePage {
 
           var i = 0;
           var ref = this;
-          this.loader.create({
-            message: "syncing data"
-          }).then((ele) => {
-            ele.present();
-            inner();
-            function inner() {
+          // this.loader.create({
+          //   message: "syncing data"
+          // }).then((ele) => {
+          //   ele.present();
+          //this.progressbar = true;
+          document.getElementById("pBar").style.display = "block";
+          inner();
+          function inner() {
 
-              if (posts[i]["inserted"] == "0") {
-                ref.pushData(posts[i], i, function () {
+            if (posts[i]["inserted"] == "0") {
+              ref.pushData(posts[i], i, function () {
 
-                  i++;
-                  if (i < posts.length) {
-                    inner();
-                  }
-                  else {
-                    ele.dismiss();
-                    ref.getData();
-                    ref.init = false;
-
-
-
-                  }
-
-                })
-              }
-              else {
                 i++;
                 if (i < posts.length) {
                   inner();
                 }
                 else {
-                  ele.dismiss();
+                  // ele.dismiss();
+                  //ref.progressbar = false;
+                  // document.getElementById("pBar").style.display = "none";
+
+                  // ref.getData();
+                  // ref.init = false;
+                  ref.pushOfflinePosts1();
+
+
+
+                }
+
+              })
+            }
+            else {
+              i++;
+              if (i < posts.length) {
+                inner();
+              }
+              else {
+                //  ele.dismiss();
+                //  ref.progressbar = false;
+                // document.getElementById("pBar").style.display = "none";
+                // ref.getData();
+                //ref.init = false;
+                ref.pushOfflinePosts1();
+
+
+
+              }
+
+            }
+
+          }
+          // })
+        }
+        else {
+          this.pushOfflinePosts1();
+          // this.getData();
+        }
+      })
+    }
+    else {
+      this.pushOfflinePosts1();
+    }
+  }
+  pushOfflinePosts1() {
+
+    if (navigator.onLine) {
+      this.storage.get("posts1").then((posts) => {
+
+        if (posts) {
+
+
+          var i = 0;
+          var ref = this;
+          // this.loader.create({
+          //   message: "syncing data"
+          // }).then((ele) => {
+          //   ele.present();
+          // this.progressbar = true;
+          document.getElementById("pBar").style.display = "block";
+          inner();
+          function inner() {
+
+            if (posts[i]["inserted"] == "0") {
+              ref.pushData1(posts[i], i, function () {
+
+                i++;
+                if (i < posts.length) {
+                  inner();
+                }
+                else {
+                  // ele.dismiss();
+                  // ref.progressbar = false;
+                 // document.getElementById("pBar").style.display = "none";
                   ref.getData();
                   ref.init = false;
 
@@ -225,15 +300,38 @@ export class HomePage {
 
                 }
 
+              })
+            }
+            else {
+              i++;
+              if (i < posts.length) {
+                inner();
+              }
+              else {
+                //ele.dismiss();
+                // ref.progressbar = false;
+               // document.getElementById("pBar").style.display = "none";
+                ref.getData();
+                ref.init = false;
+
+
+
               }
 
             }
-          })
+
+          }
+          //  })
         }
         else {
+          document.getElementById("pBar").style.display = "none";
           this.getData();
+          this.init = false;
         }
       })
+    }
+    else {
+      // this.getData();
     }
   }
   segmentChanged(event) {
@@ -242,36 +340,29 @@ export class HomePage {
 
   }
   getData() {
+    document.getElementById("pBar").style.display = "block";
     var key = new Date().toISOString().split("T")[0];
-    this.loader.create({
-      message: "loading data..."
-    }).then((ele) => {
-
-      ele.present();
+   
+alert("getdata");
+      
       var url = "http://apihawksdemo.services-hawks.com/api/GetListBitacoraTurn?codUser=18";
 
       this.http1.sendRequest(url, { method: "get" }).then((data: any) => {
         this.init = false;
-        ele.dismiss();
+      
         this.dataFromApi = JSON.parse(JSON.parse(data.data));
+        alert(JSON.stringify(this.dataFromApi));
         console.log(this.dataFromApi);
         this.storage.set(key, this.dataFromApi);
+        document.getElementById("pBar").style.display = "none";
+        this.changeRef.detectChanges();
       }, (err) => {
+        alert(JSON.stringify(err));
         this.init = false;
-        ele.dismiss();
-        if (this.offline) {
-
-          this.storage.get(key).then((offlinedata) => {
-            if (offlinedata) {
-              this.dataFromApi = offlinedata;
-            }
-
-          })
-        }
-        else {
-          //this.showToast(JSON.stringify(err));
-        }
-      })
+        document.getElementById("pBar").style.display = "none";
+        this.changeRef.detectChanges();
+       
+       
     })
   }
   pushDataTemp() {
@@ -305,126 +396,125 @@ export class HomePage {
       delete requestData.inserted;
       offlinePost = true;
     }
-    if (index == -1) {
-      requestData.LISTA_ADJUNTOS = this.attachments;
+    // if (index == -1) {
+    //   requestData.LISTA_ADJUNTOS = this.attachments;
 
-      this.attachments = [];
+    //   this.attachments = [];
 
-    }
+    // }
     var ref = this;
     //  alert(JSON.stringify(requestData.LISTA_ADJUNTOS));
-    this.uploadOfflineImages(requestData.LISTA_ADJUNTOS, function (arr) {
-      //  alert(JSON.stringify(arr));
-      requestData.LISTA_ADJUNTOS = arr;
-      var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
+    // this.uploadOfflineImages(requestData.LISTA_ADJUNTOS, function (arr) {
+    //  alert(JSON.stringify(arr));
+    //  requestData.LISTA_ADJUNTOS = arr;
+    var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
 
 
-      ref.http1.setDataSerializer("json");
-      var key = new Date().toISOString().split("T")[0];
-      ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
+    ref.http1.setDataSerializer("json");
+    var key = new Date().toISOString().split("T")[0];
+    ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
 
+     // alert(JSON.stringify(res));
+      var val = JSON.parse(JSON.parse(res.data));
 
-        var val = JSON.parse(JSON.parse(res.data));
-
-        ref.pushData1(requestData.LISTA_ADJUNTOS, val.title, function () {
-          if (index != -1) {
-            ref.removeOfflineRequest(index, function () {
-              fn();
-            })
-          }
-          else {
-            ref.getData();
-            fn();
-          }
-
-          ref.showToast(val.message);
-
+      //  ref.pushData1(requestData.LISTA_ADJUNTOS, val.title, function () {
+      if (index != -1) {
+        ref.removeOfflineRequest(index, function () {
+          fn();
         })
+      }
+      else {
+        ref.getData();
+        fn();
+      }
+
+      ref.showToast(val.message);
+
+      // })
 
 
-      }, (err) => {
-        console.log(fn);
+    }, (err) => {
+      console.log(fn);
 
 
-        if (navigator.onLine == false) {
-          ref.showToast("Registro de bitacora correcto:");
+      if (navigator.onLine == false) {
+        ref.showToast("Registro de bitacora correcto:");
 
-          if (offlinePost == false) {
-            ref.storage.get(key).then((offlinedata) => {
+        if (offlinePost == false) {
+          ref.storage.get(key).then((offlinedata) => {
 
-              if (offlinedata) {
-                offlinedata.unshift(requestData);
-                ref.storage.set(key, offlinedata);
-                ref.dataFromApi.unshift(requestData);
-                ref.addOfflineRequest(requestData);
-                fn();
-
-
-              }
-              else {
-                var arr = [];
-                arr.push(requestData);
-                ref.storage.set(key, arr);
-                ref.dataFromApi.unshift(requestData);
-                ref.addOfflineRequest(requestData);
-                fn()
+            if (offlinedata) {
+              offlinedata.unshift(requestData);
+              ref.storage.set(key, offlinedata);
+              ref.dataFromApi.unshift(requestData);
+              ref.addOfflineRequest(requestData);
+              fn();
 
 
-              }
-
-            })
-          }
-          else {
-
-            fn();
-          }
-
-
+            }
+            else {
+              var arr = [];
+              arr.push(requestData);
+              ref.storage.set(key, arr);
+              ref.dataFromApi.unshift(requestData);
+              ref.addOfflineRequest(requestData);
+              fn()
 
 
+            }
 
+          })
         }
         else {
-          fn();
-          ref.showToast(JSON.stringify(err));
 
+          fn();
         }
 
-      })
+
+
+
+
+      }
+      else {
+        fn();
+        ref.showToast(JSON.stringify(err));
+
+      }
+
     })
+    // })
 
   }
-  pushData1(arr, title, fn) {
-    if (arr.length > 0) {
-      var i = 0;
+  pushData1(obj, index, fn) {
+    if (navigator.onLine) {
       var ref = this;
-      inner();
+      this.upload(obj.FOTO, Date.now().toString(), function (downloadurl) {
 
-      function inner() {
+
         var url = "http://apihawksdemo.services-hawks.com/api/CreateAttachBitacora";
 
 
         ref.http1.setDataSerializer("json");
-        arr[i].CODIGO_BITACORA = title;
-        ref.http1.post(url, arr[i], { "Content-Type": "application/json" }).then((res) => {
-          console.log(res);
-          i++;
-          if (i < arr.length) {
-            inner();
-          }
-          else {
+        obj.FOTO = downloadurl;
+        ref.http1.post(url, obj, { "Content-Type": "application/json" }).then((res) => {
+          ref.removeOfflineRequest1(index, function () {
             fn();
-          }
+          })
+
+
 
 
 
         })
-
-      }
+      })
     }
     else {
       fn();
     }
+
+
+
+
 
   }
 
@@ -461,6 +551,117 @@ export class HomePage {
 
   }
 
+  addOfflineRequest1(obj) {
+    obj["inserted"] = "0";
+
+    this.storage.get("posts1").then((posts) => {
+      if (posts) {
+
+        posts.unshift(obj);
+        this.storage.set("posts1", posts);
+
+
+      }
+      else {
+        var arr = [];
+        arr.push(obj);
+        this.storage.set("posts1", arr);
+
+
+
+
+      }
+
+    })
+
+  }
+  removeOfflineRequest1(index, fn) {
+
+    this.storage.get("posts1").then((posts) => {
+      if (posts) {
+        console.log(posts.length);
+        posts[index]["inserted"] = "1";
+        console.log(index);
+        console.log(posts.length);
+        this.storage.set("posts1", posts).then(() => {
+          fn();
+        })
+
+
+      }
+    })
+
+  }
+  bindOfflineAttachments() {
+    var i = 0;
+    var ref = this;
+   // alert("binding");
+    inner();
+    function inner() {
+     
+     
+      ref.storage.get(ref.dataFromApi[i].CODIGO.toString()).then((arr) => {
+        
+        if (arr) {
+        // alert(ref.dataFromApi[i].LISTA_ADJUNTOS);
+         
+          if(ref.dataFromApi[i].LISTA_ADJUNTOS)
+          {
+          //  alert(arr)
+            ref.dataFromApi[i].LISTA_ADJUNTOS =  ref.dataFromApi[i].LISTA_ADJUNTOS.concat(arr);
+          }
+          else{
+          ref.dataFromApi[i].LISTA_ADJUNTOS = arr;
+          }
+       //   alert(ref.dataFromApi[i].LISTA_ADJUNTOS);
+
+        }
+        i++;
+        if (i < ref.dataFromApi.length) {
+         
+          inner();
+        }
+        else{
+          ref.init = false;
+          ref.changeRef.detectChanges();
+        }
+       
+      })
+
+
+
+    }
+
+  }
+  saveOfflineAttachments(CODIGO_BITACORA, attachmentObj) {
+
+       
+    this.storage.get(CODIGO_BITACORA).then((arr) => {
+     // alert(JSON.stringify(arr));
+      if (arr) {
+
+        arr.unshift(attachmentObj);
+        this.storage.set(CODIGO_BITACORA, arr);
+
+
+      }
+      else {
+       var arrtemp = [];
+        arrtemp.push(attachmentObj);
+       
+        this.storage.set(CODIGO_BITACORA, arrtemp);
+
+
+
+
+
+      }
+    
+
+    })
+
+  }
+
   removeOfflineRequest(index, fn) {
 
     this.storage.get("posts").then((posts) => {
@@ -478,92 +679,65 @@ export class HomePage {
     })
 
   }
-  uploadOfflineImages(arr, fn) {
-    if (arr.length > 0) {
-      let i = 0;
-      var ref = this;
-      inner();
 
-      function inner() {
-        // alert(arr[i].base64);
-        // alert(arr.length);
-        if (arr[i].base64) {
-          ref.upload(arr[i].FOTO, Date.now().toString() + ".png", function (url) {
-            arr[i].FOTO = url;
-            if (url != arr[i].FOTO) {
-              delete arr[i].base64;
-            }
-            i++
-            if (i < arr.length) {
-              inner();
-            }
-            else {
-              fn(arr);
-
-            }
-
-
-          })
-
-        }
-        else {
-          i++;
-          if (i < arr.length) {
-            inner();
-          }
-          else {
-            fn(arr);
-
-          }
-        }
+  getOfflineData() {
+    var key = new Date().toISOString().split("T")[0];
+    this.storage.get(key).then((offlinedata) => {
+      if (offlinedata) {
+        this.dataFromApi = offlinedata;
+       // alert(JSON.stringify(this.dataFromApi));
+        this.bindOfflineAttachments();
       }
-    }
-    else {
-      fn(arr);
-    }
+      else{
+        this.init = false;
+      }
+
+    })
+
   }
+
 
   upload(base64, fileName, fn) {
 
     let ref = this;
-    this.loader.create({
-      message: "uploading file..."
-    }).then((ele) => {
+    // this.loader.create({
+    //   message: "uploading file..."
+    // }).then((ele) => {
 
-      ele.present();
-      if (navigator.onLine) {
+    //   ele.present();
+    if (navigator.onLine) {
 
-        // window.app.firebasetemp.database().ref(window.app.appName+"/images/"+id+"/").set(obj, function (err) {
+      // window.app.firebasetemp.database().ref(window.app.appName+"/images/"+id+"/").set(obj, function (err) {
 
-        //   ele.dismiss();
-        // })
-        var storageref = firebase.storage().ref();
+      //   ele.dismiss();
+      // })
+      var storageref = firebase.storage().ref();
 
-        var childRef = storageref.child(fileName);
-        childRef.putString(base64, "data_url").then((snapshot) => {
-          ele.dismiss();
-          snapshot.ref.getDownloadURL().then((downloadURL) => {
-           ref.showToast("downloadurl = "+downloadURL);
-            fn(downloadURL)
-          }, (err) => {
-            ele.dismiss();
-            if (navigator.onLine == false) {
-              fn(base64);
-            }
-            console.log(err);
-          });
+      var childRef = storageref.child(fileName);
+      childRef.putString(base64, "data_url").then((snapshot) => {
+        // ele.dismiss();
+        snapshot.ref.getDownloadURL().then((downloadURL) => {
+          ref.showToast("downloadurl = " + downloadURL);
+          fn(downloadURL)
         }, (err) => {
-          ele.dismiss();
+          // ele.dismiss();
+          if (navigator.onLine == false) {
+            fn(base64);
+          }
           console.log(err);
-        })
-      }
-      else {
-        ele.dismiss();
-        fn(base64);
-      }
+        });
+      }, (err) => {
+        //  ele.dismiss();
+        console.log(err);
+      })
+    }
+    else {
+      // ele.dismiss();
+      fn(base64);
+    }
 
 
-    })
+    // })
 
   }
 

@@ -8,8 +8,16 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'offline',
     pathMatch: 'full'
+  },
+  {
+    path: 'offline',
+    loadChildren: () => import('./offline/offline.module').then( m => m.OfflinePageModule)
+  },
+  {
+    path: 'popup',
+    loadChildren: () => import('./popup/popup.module').then( m => m.PopupPageModule)
   },
 ];
 
