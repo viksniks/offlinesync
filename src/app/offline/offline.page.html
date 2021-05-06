@@ -7,6 +7,70 @@
 </ion-header>
 
 <ion-content>
+  <ion-card *ngFor="let d of existingData;let i = index;">
+
+    <ion-card-content>
+     
+      <p>CODIGO: {{d.CODIGO}}</p>
+
+      <p>FECHA_INGRESO: {{d.FECHA_INGRESO}}</p>
+      <p>F_INGRESO: {{d.F_INGRESO}}</p>
+      <p>FECHA_SALIDA: {{d.FECHA_SALIDA}}</p>
+      <p> F_SALIDA: {{d.F_SALIDA}}</p>
+      <p>CODIGO_VISITANTE: {{d.CODIGO_VISITANTE}}</p>
+      <p>NOMBRE_VISITANTE:{{d.NOMBRE_VISITANTE}}</p>
+      <p>CEDULA_VISITANTE:{{d.CEDULA_VISITANTE}}</p>
+      <p>EMPRESA_VISITANTE: {{d.EMPRESA_VISITANTE}}</p>
+      <p>FOTO_VISITANTE:{{d.FOTO_VISITANTE}}</p>
+      <p>TIPO: {{d.TIPO}}</p>
+      <p>AREA_VISITA: {{d.AREA_VISITA}}</p>
+      <p>RESPONSABLE:{{d.RESPONSABLE}} </p>
+      <p>OBSERVACION: {{d.OBSERVACION}}</p>
+      <p>CODIGO_TURNO: {{d.CODIGO_TURNO}}</p>
+      <p>CODIGO_PUNTO_CONTROL:{{d.CODIGO_PUNTO_CONTROL}} </p>
+      <p>NOMBRE_PUNTO_CONTROL:{{d.NOMBRE_PUNTO_CONTROL}} </p>
+      <p>CODIGO_SUCURSAL_CLIENTE: {{d.CODIGO_SUCURSAL_CLIENTE}}</p>
+      <p>NOMBRE_SUCURSAL_CLIENTE: {{d.NOMBRE_SUCURSAL_CLIENTE}}</p>
+      <p>DIRECCION_SUCURSAL_CLIENTE: {{d.DIRECCION_SUCURSAL_CLIENTE}}</p>
+      <p>TELEFONO_SUCURSAL_CLIENTE: {{d.TELEFONO_SUCURSAL_CLIENTE}}</p>
+      <p>CODIGO_USUARIO: {{d.CODIGO_USUARIO}}</p>
+      <p>NOMBRE_USUARIO: {{d.NOMBRE_USUARIO}}</p>
+      <p>TELEFONO_USUARIO: {{d.TELEFONO_USUARIO}}</p>
+      <p>CANTIDAD_ADJUNTOS: {{d.CANTIDAD_ADJUNTOS}}</p><br />
+      <!-- <p>
+        <ion-icon style="position: relative;top:10px;" *ngIf="d.CODIGO" (click)="captureImage(i)" size="large"
+          name="camera">
+        </ion-icon>LISTA_ADJUNTOS:
+      </p> -->
+      <ion-slides pager="true">
+
+
+
+
+
+
+        <ion-slide *ngFor="let l of d.LISTA_ADJUNTOS">
+
+          <ion-card>
+            <img [src]="l.FOTO" />
+
+            <ion-card-content>
+              <p>CODIGO:{{l.CODIGO}}</p>
+              <p>TIPO:{{l.TIPO}}</p>
+              <p>OBSERVACION:{{l.OBSERVACION}}</p>
+              <p>CODIGO_BITACORA:{{l.CODIGO_BITACORA}}</p>
+            </ion-card-content>
+          </ion-card>
+
+
+        </ion-slide>
+
+      </ion-slides>
+     
+
+    </ion-card-content>
+
+  </ion-card>
   <ion-fab (click)="openPopUp()" vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button>
       <ion-icon name="add"></ion-icon>

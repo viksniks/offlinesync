@@ -6,6 +6,7 @@ import { Network } from "@ionic-native/network/ngx";
 import { HTTP } from "@ionic-native/http/ngx";
 import firebase from 'firebase';
 import { environment } from "../../environments/environment";
+declare var window;
 @Component({
   selector: 'app-popup',
   templateUrl: './popup.page.html',
@@ -14,7 +15,7 @@ import { environment } from "../../environments/environment";
 export class PopupPage implements OnInit {
   id: string = "";
   attachments: any[] = [];
-  config: any = environment.firebaseConfig;
+ 
   loaderRef: any;
   objtemp: obj = {
     CODIGO: null,
@@ -49,19 +50,102 @@ export class PopupPage implements OnInit {
 
   constructor(private modalCtrl: ModalController, private camera: Camera, private http1: HTTP, private loader: LoadingController, private toast: ToastController, private network: Network, private storage: Storage, private platform: Platform) { }
   close() {
-    this.modalCtrl.dismiss();
+    this.modalCtrl.dismiss().then(()=>{
+      window.offline.getData();
+    
+    })
 
   }
   ngOnInit() {
-    if (firebase.apps.length == 0) {
-      firebase.initializeApp(this.config);
+    
+    //syncing offline first posts
 
-    }
+  }
+
+ 
+
+  sync(fn) {
+    this.storage.get("posts").then((posts) => {
+      if (posts) {
+
+        var ref = this;
+        
+        
+        var i = 0;
+
+        inner();
+        function inner() {
+          if (posts[i].status == "0") {
+            if(ref.loaderRef == undefined)
+            {
+              ref.showLoader("syncing data");
+            }
+            ref.postDataOffline(posts[i].data, function (val) {
+              if (val == "ok") {
+                posts[i].status = "1";
+
+              }
+              i++;
+
+              if (i < posts.length) {
+                inner();
+
+              }
+              else {
+
+                setTimeout(() => {
+
+//alert("ok");
+                  ref.hideLoader();
+                  fn();
+                }, 2000);
+                ref.storage.set("posts", posts).then(()=>
+                {
+                 
+
+                })
+              
+
+              }
+
+            })
+          }
+          else {
+            i++;
+            if (i < posts.length) {
+              inner();
+
+            }
+            else {
+              // ref.hideLoader();
+              setTimeout(() => {
+
+//alert("ok");
+                ref.hideLoader();
+                fn();
+              }, 2000);
+              ref.storage.set("posts", posts).then(()=>
+              {
+                
+
+              })
+
+            }
+
+          }
+
+        }
+      }
+      else{
+        fn();
+      }
+    })
   }
 
   pushDataTemp() {
-    var ref = this;
     this.showLoader("posting data");
+    var ref = this;
+
     this.objtemp.FECHA_INGRESO = new Date();
     this.objtemp.F_INGRESO = new Date().toISOString().split("T")[0] + " " + new Date().toTimeString().split("GMT")[0].trim();
     this.objtemp.FECHA_SALIDA = new Date();
@@ -70,44 +154,136 @@ export class PopupPage implements OnInit {
 
 
     this.pushData(this.objtemp, function () {
-      ref.hideLoader();
+      // alert("ok");
+      //ref.hideLoader();
+      setTimeout(() => {
+
+
+        ref.hideLoader();
+      }, 2000);
 
     });
 
 
   }
   pushData(requestData, fn) {
-
     var ref = this;
+    if (navigator.onLine) {
+     
 
-    var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
-
-
-    ref.http1.setDataSerializer("json");
-    var key = new Date().toISOString().split("T")[0];
-    ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
+      var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
 
 
-      var val = JSON.parse(JSON.parse(res.data));
-      this.id = val.title;
-      fn();
+      ref.http1.setDataSerializer("json");
+      var key = new Date().toISOString().split("T")[0];
+      ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
 
 
-
-      ref.showToast(val.message);
+        var val = JSON.parse(JSON.parse(res.data));
+        this.id = val.title;
+        fn();
 
 
 
-
-    }, (err) => {
-      fn();
+        ref.showToast(val.message);
 
 
 
 
+      }, (err) => {
+        if (navigator.onLine == false) {
+          this.saveOfflinePost(requestData, "post", function () {
+            fn();
+            ref.showToast("successfully inserted");
+          })
+        }
+
+
+
+
+      })
+    }
+    else {
+      this.saveOfflinePost(requestData, "post", function () {
+        fn();
+        ref.showToast("successfully inserted");
+      })
+    }
+
+  }
+
+  postDataOffline(requestData, fn) {
+    if (navigator.onLine) {
+      var ref = this;
+
+      var url = "http://apihawksdemo.services-hawks.com/api/CreateBitacora";
+      var CODIGOTEMP = requestData.CODIGO;
+
+      requestData.CODIGO = null;
+      ref.http1.setDataSerializer("json");
+      var key = new Date().toISOString().split("T")[0];
+      ref.http1.post(url, requestData, { "Content-Type": "application/json" }).then((res) => {
+
+
+        var val = JSON.parse(JSON.parse(res.data));
+
+        this.pushData1Offline(CODIGOTEMP, val.title, function () {
+          fn("ok");
+
+        })
+
+
+
+
+
+
+
+
+
+      }, (err) => {
+
+        fn("");
+
+
+
+      })
+    }
+    else {
+      fn("");
+    }
+
+
+  }
+  pushData1Offline(CODIGOTEMP, CODIGO, fn) {
+    var ref = this;
+    this.storage.get(CODIGOTEMP).then((arr) => {
+
+      if (arr) {
+        var i = 0;
+
+        inner();
+        function inner() {
+          arr[i].CODIGO_BITACORA = CODIGO;
+          ref.pushData1(arr[i], function () {
+            i++;
+            if (i < arr.length) {
+              inner();
+            }
+            else {
+              fn();
+
+
+
+            }
+
+          })
+
+        }
+      }
+      else {
+        fn();
+      }
     })
-    // })
-
   }
   pushData1Temp() {
     var ref = this;
@@ -121,7 +297,12 @@ export class PopupPage implements OnInit {
           inner();
         }
         else {
-          ref.hideLoader();
+          // ref.hideLoader();
+          setTimeout(() => {
+
+
+            ref.hideLoader();
+          }, 2000);
           ref.attachments = [];
 
         }
@@ -148,11 +329,21 @@ export class PopupPage implements OnInit {
 
 
 
+        }, (err) => {
+          if (navigator.onLine == false) {
+            this.saveOfflinePost(obj, "post1", function () {
+              fn();
+            });
+
+          }
         })
       })
     }
     else {
-      fn();
+      this.saveOfflinePost(obj, "post1", function () {
+        fn();
+      });
+
     }
 
 
@@ -213,7 +404,7 @@ export class PopupPage implements OnInit {
         // ele.dismiss();
         snapshot.ref.getDownloadURL().then((downloadURL) => {
           console.log(downloadURL);
-          ref.showToast("downloadurl = " + downloadURL);
+        //  ref.showToast("downloadurl = " + downloadURL);
           fn(downloadURL)
         }, (err) => {
           // ele.dismiss();
@@ -263,6 +454,56 @@ export class PopupPage implements OnInit {
       this.loaderRef = undefined;
     }
   }
+
+  saveOfflinePost(post, type, fn) {
+    if (type == "post") {
+      var CODIGO = "random" + Date.now().toString();
+      post.CODIGO = CODIGO;
+      this.id = CODIGO;
+      this.storage.get("posts").then((arr) => {
+        var obj = { status: "0", data: post };
+
+        if (arr == null) {
+          arr = [];
+
+
+
+        }
+        arr.push(obj);
+        this.storage.set("posts", arr).then(() => {
+          fn();
+        })
+
+
+      })
+
+
+    }
+    else if (type == "post1") {
+
+      this.storage.get(this.id).then((val) => {
+        var arr = [];
+        if (val) {
+          arr = val.concat(post);
+
+
+
+        }
+        else {
+          arr.push(post);
+
+        }
+        this.storage.set(this.id, arr).then(() => {
+          fn();
+        })
+      })
+
+    }
+
+
+  }
+
+
 
 }
 interface obj {
