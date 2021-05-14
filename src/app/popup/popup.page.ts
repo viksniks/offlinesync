@@ -141,7 +141,7 @@ export class PopupPage implements OnInit {
       }
     })
   }
-
+//first post request starts
   pushDataTemp() {
     this.showLoader("posting data");
     var ref = this;
@@ -212,6 +212,9 @@ export class PopupPage implements OnInit {
 
   }
 
+  // second post request ends
+
+  //offline sync starts
   postDataOffline(requestData, fn) {
     if (navigator.onLine) {
       var ref = this;
@@ -285,6 +288,9 @@ export class PopupPage implements OnInit {
       }
     })
   }
+  //offline sync ends
+
+  //second post request start
   pushData1Temp() {
     var ref = this;
     var i = 0;
@@ -351,6 +357,7 @@ export class PopupPage implements OnInit {
 
 
   }
+  //second post request end
 
   captureImage() {
     const options: CameraOptions = {
